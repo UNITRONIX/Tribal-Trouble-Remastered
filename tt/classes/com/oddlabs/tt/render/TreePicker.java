@@ -294,8 +294,12 @@ strictfp class TreePicker implements TreeNodeVisitor {
                 addToLowDetailRenderList(tree_supply);
             } else {
                 addToRenderList(tree_supply, camera);
+                onTreeVisible(tree_supply);
             }
         }
+    }
+
+    protected void onTreeVisible(TreeSupply tree_supply) {
     }
 
     private boolean canRenderLowDetail(AbstractTreeGroup tree_group) {

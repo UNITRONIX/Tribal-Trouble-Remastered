@@ -83,6 +83,10 @@ public final strictfp class Building extends Selectable implements Occupant {
 
     private static final float DAMAGED_PARTICLE_ALPHA = 3f;
 
+    public static final int MAX_UPGRADE_LEVEL = 3;
+    private static final float[] UPGRADE_SPEED_MULTIPLIER = {1.0f, 1.25f, 1.5f, 2.0f};
+    private static final float[] UPGRADE_DEFENSE_MULTIPLIER = {1.0f, 1.2f, 1.5f, 2.0f};
+
     private final Map supply_containers = new HashMap();
     private final Map build_containers = new HashMap();
     private final DeployContainer[] deploy_containers = new DeployContainer[12];
@@ -94,6 +98,7 @@ public final strictfp class Building extends Selectable implements Occupant {
     private float remove_delay = 0;
     private int hit_points = 1;
     private int build_points = 0;
+    private int upgrade_level = 0;
     private float[][] old_landscape_heights;
 
     private Target rally_point = this;
@@ -374,7 +379,7 @@ public final strictfp class Building extends Selectable implements Occupant {
     }
 
     private final Unit createUnit(Target rally_point, UnitTemplate template) {
-        return new Unit(
+        Unit unit = new Unit(
                 getOwner(),
                 getPositionX(),
                 getPositionY(),
@@ -383,6 +388,8 @@ public final strictfp class Building extends Selectable implements Occupant {
                 null,
                 true,
                 true);
+        unit.setLevel(upgrade_level);
+        return unit;
     }
 
     public final void createArmy(int num_peon, int num_rock, int num_iron, int num_rubber) {
@@ -631,6 +638,27 @@ public final strictfp class Building extends Selectable implements Occupant {
 
     public final boolean isComplete() {
         return build_points == getBuildingTemplate().getMaxHitPoints();
+    }
+
+    public final int getUpgradeLevel() {
+        return upgrade_level;
+    }
+
+    public final boolean canUpgrade() {
+        return isComplete() && !isDead() && upgrade_level < MAX_UPGRADE_LEVEL;
+    }
+
+    public final void upgrade() {
+        if (!canUpgrade()) return;
+        upgrade_level++;
+    }
+
+    public final float getProductionSpeedMultiplier() {
+        return UPGRADE_SPEED_MULTIPLIER[upgrade_level];
+    }
+
+    public final float getDefenseMultiplier() {
+        return UPGRADE_DEFENSE_MULTIPLIER[upgrade_level];
     }
 
     public final float getHitOffsetZ() {
@@ -884,7 +912,8 @@ public final strictfp class Building extends Selectable implements Occupant {
     public final void hit(int damage, float dir_x, float dir_y, Player owner) {
         super.hit(damage, dir_x, dir_y, owner);
         if (!isDead()) {
-            setHitPoints(hit_points - damage);
+            int effective_damage = (int) StrictMath.max(1, StrictMath.round(damage / getDefenseMultiplier()));
+            setHitPoints(hit_points - effective_damage);
             World world = getOwner().getWorld();
             world.getAudio()
                     .newAudio(

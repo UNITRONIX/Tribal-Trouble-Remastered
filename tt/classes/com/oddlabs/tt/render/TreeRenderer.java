@@ -13,6 +13,7 @@ public final strictfp class TreeRenderer extends TreePicker {
     private final TreeLowDetail tree_low_detail;
     private final WaveAnimation wave_animation = new WaveAnimation();
     private final Cheat cheat;
+    private final TreeShadowRenderer tree_shadow_renderer = new TreeShadowRenderer();
 
     TreeRenderer(
             World world,
@@ -37,6 +38,10 @@ public final strictfp class TreeRenderer extends TreePicker {
 
     public final TreeLowDetail getLowDetail() {
         return tree_low_detail;
+    }
+
+    final TreeShadowRenderer getTreeShadowRenderer() {
+        return tree_shadow_renderer;
     }
 
     private void renderLowDetail(AbstractTreeGroup group) {
@@ -110,5 +115,14 @@ public final strictfp class TreeRenderer extends TreePicker {
 
     final boolean isPicking() {
         return false;
+    }
+
+    protected void onTreeVisible(TreeSupply tree_supply) {
+        if (!tree_supply.isEmpty()) {
+            tree_shadow_renderer.addTreeShadow(
+                    tree_supply.getPositionX(),
+                    tree_supply.getPositionY(),
+                    tree_supply.getScale());
+        }
     }
 }

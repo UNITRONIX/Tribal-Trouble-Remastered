@@ -19,7 +19,9 @@ import com.oddlabs.tt.util.StatCounter;
 import com.oddlabs.tt.util.StateChecksum;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public final strictfp class AnimationManager {
     public static final int ANIMATION_MILLISECONDS_PER_TICK = 20;
@@ -49,7 +51,8 @@ public final strictfp class AnimationManager {
     private static boolean checksum_complain = true;
 
     private final List animations = new ArrayList();
-    private final List deleted_animations = new ArrayList();
+    private final Set animations_set = new HashSet();
+    private final Set deleted_animations = new HashSet();
 
     private int tick;
 
@@ -228,21 +231,23 @@ public final strictfp class AnimationManager {
 
     public final void registerAnimation(Animated anim) {
         deleted_animations.remove(anim);
-        if (!animations.contains(anim)) {
+        if (animations_set.add(anim)) {
             animations.add(anim);
         }
     }
 
     public final void removeAnimation(Animated anim) {
-        if (animations.contains(anim) && !deleted_animations.contains(anim)) {
+        if (animations_set.contains(anim) && !deleted_animations.contains(anim)) {
             deleted_animations.add(anim);
         }
     }
 
     private final void flushAnimations() {
-        for (int i = 0; i < deleted_animations.size(); i++)
-            animations.remove(deleted_animations.get(i));
-        deleted_animations.clear();
+        if (!deleted_animations.isEmpty()) {
+            animations.removeAll(deleted_animations);
+            animations_set.removeAll(deleted_animations);
+            deleted_animations.clear();
+        }
     }
 
     public final void updateChecksum(StateChecksum checksum) {

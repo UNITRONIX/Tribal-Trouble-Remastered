@@ -79,7 +79,10 @@ public final strictfp class LocalInput {
 
     public static final void mouseDragged(GUIRoot gui_root, int button, short x, short y) {
         setPos(x, y);
-        gui_root.getInputState().mouseDragged(button, x, y);
+        float s = getUIScale();
+        short vx = (short) Math.round(x / s);
+        short vy = (short) Math.round(y / s);
+        gui_root.getInputState().mouseDragged(button, vx, vy);
     }
 
     public static final void mouseReleased(GUIRoot gui_root, int button) {
@@ -96,7 +99,10 @@ public final strictfp class LocalInput {
 
     public static final void mouseMoved(GUIRoot gui_root, short x, short y) {
         setPos(x, y);
-        gui_root.getInputState().mouseMoved(x, y);
+        float s = getUIScale();
+        short vx = (short) Math.round(x / s);
+        short vy = (short) Math.round(y / s);
+        gui_root.getInputState().mouseMoved(vx, vy);
     }
 
     public static final boolean isShiftDownCurrently() {
@@ -138,11 +144,19 @@ public final strictfp class LocalInput {
     }
 
     public static final int getMouseY() {
-        return mouse_y;
+        return Math.round(mouse_y / getUIScale());
     }
 
     public static final int getMouseX() {
+        return Math.round(mouse_x / getUIScale());
+    }
+
+    public static final int getPhysicalMouseX() {
         return mouse_x;
+    }
+
+    public static final int getPhysicalMouseY() {
+        return mouse_y;
     }
 
     public static final boolean alIsCreated() {
@@ -206,11 +220,25 @@ public final strictfp class LocalInput {
         instance = this;
     }
 
+    public static final float getUIScale() {
+        int h = Display.getHeight();
+        if (h <= 0) return 1.0f;
+        return Math.max(1.0f, h / Globals.UI_REFERENCE_HEIGHT);
+    }
+
     public static final int getViewWidth() {
-        return Display.getWidth();
+        return Math.round(Display.getWidth() / getUIScale());
     }
 
     public static final int getViewHeight() {
+        return Math.round(Display.getHeight() / getUIScale());
+    }
+
+    public static final int getPhysicalViewWidth() {
+        return Display.getWidth();
+    }
+
+    public static final int getPhysicalViewHeight() {
         return Display.getHeight();
     }
 
@@ -273,7 +301,7 @@ public final strictfp class LocalInput {
         return (float)
                 (Globals.VIEW_MIN
                         * StrictMath.tan(Globals.FOV * (StrictMath.PI / 180.0f) * 0.5d)
-                        / (getViewHeight() * 0.5d));
+                        / (getPhysicalViewHeight() * 0.5d));
     }
 
     public static final float getErrorConstant() {

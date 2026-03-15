@@ -73,9 +73,25 @@ public final strictfp class AdvancedAI extends AI {
         nodeAttackWithWarriorsAndChieftain(
                 NUM_WARRIORS[difficulty],
                 NUM_WARRIORS[difficulty] >= NUM_WARRIORS_FOR_CHIEFTAIN[difficulty]);
+        nodeUpgradeBuildings();
         nodeAssignIdlePeons();
         if (getOwner().hasActiveChieftain()) {
             getOwner().getRace().getChieftainAI().decide(getOwner().getChieftain());
+        }
+    }
+
+    private final void nodeUpgradeBuildings() {
+        if (difficulty < DIFFICULTY_NORMAL) return;
+        int unit_count = getOwner().getUnitCountContainer().getNumSupplies();
+        int required = (difficulty == DIFFICULTY_HARD) ? 30 : 50;
+        if (unit_count < required) return;
+        if (getArmory() != null) {
+            Building armory = (Building) getArmory()[0];
+            if (armory.canUpgrade()) armory.upgrade();
+        }
+        if (getQuarters() != null) {
+            Building quarters = (Building) getQuarters()[0];
+            if (quarters.canUpgrade()) quarters.upgrade();
         }
     }
 

@@ -4,7 +4,9 @@ import com.oddlabs.tt.landscape.World;
 import com.oddlabs.tt.render.SpriteKey;
 
 public final strictfp class IronSupply extends SupplyModel {
-    private static final int INITIAL_SUPPLIES = 10;
+    private static final int INITIAL_SUPPLIES = 15;
+
+    private final int initial_supplies;
 
     public IronSupply(
             World world,
@@ -16,6 +18,20 @@ public final strictfp class IronSupply extends SupplyModel {
             float y,
             float rotation,
             boolean increase) {
+        this(world, sprite_renderer, size, grid_x, grid_y, x, y, rotation, INITIAL_SUPPLIES, increase);
+    }
+
+    public IronSupply(
+            World world,
+            SpriteKey sprite_renderer,
+            float size,
+            int grid_x,
+            int grid_y,
+            float x,
+            float y,
+            float rotation,
+            int supplies,
+            boolean increase) {
         super(
                 world,
                 sprite_renderer,
@@ -25,8 +41,9 @@ public final strictfp class IronSupply extends SupplyModel {
                 x,
                 y,
                 rotation,
-                INITIAL_SUPPLIES,
+                supplies,
                 increase);
+        this.initial_supplies = supplies;
     }
 
     public final Supply respawn() {
@@ -39,6 +56,7 @@ public final strictfp class IronSupply extends SupplyModel {
                 getPositionX(),
                 getPositionY(),
                 0,
+                initial_supplies,
                 false);
     }
 }

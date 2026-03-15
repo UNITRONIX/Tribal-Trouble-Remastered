@@ -41,7 +41,7 @@ public strictfp class BuildProductionContainer extends BuildSupplyContainer {
     }
 
     public final void build(float delta) {
-        man_seconds += delta;
+        man_seconds += delta * building.getProductionSpeedMultiplier();
         if (man_seconds >= man_seconds_per_production) {
             man_seconds = 0;
             if (!dest_container.isSupplyFull()) {

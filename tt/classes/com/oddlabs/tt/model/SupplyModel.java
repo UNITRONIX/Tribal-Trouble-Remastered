@@ -140,7 +140,7 @@ public abstract strictfp class SupplyModel extends Model implements Supply, Targ
     }
 
     public float getShadowDiameter() {
-        return 0f;
+        return size * 1.5f;
     }
 
     public int getPenalty() {

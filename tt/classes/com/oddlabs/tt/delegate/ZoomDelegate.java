@@ -19,8 +19,8 @@ public strictfp class ZoomDelegate extends InGameDelegate {
     public ZoomDelegate(WorldViewer viewer, GameCamera camera) {
         super(viewer, camera);
         game_camera = camera;
-        start_x = LocalInput.getMouseX();
-        start_y = LocalInput.getMouseY();
+        start_x = LocalInput.getPhysicalMouseX();
+        start_y = LocalInput.getPhysicalMouseY();
     }
 
     private final void release() {
@@ -50,7 +50,8 @@ public strictfp class ZoomDelegate extends InGameDelegate {
 
     public void mouseMoved(int x, int y) {
         if (!done) {
-            int dy = y - start_y;
+            float s = LocalInput.getUIScale();
+            int dy = Math.round(y * s) - start_y;
 
             float zoom_factor = dy * ZOOM_FACTOR_CORRECTION;
             game_camera.zoom(zoom_factor);

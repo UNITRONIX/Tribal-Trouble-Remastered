@@ -27,6 +27,10 @@ import org.lwjgl.opengl.GL11;
 import java.nio.FloatBuffer;
 
 public final strictfp class DefaultRenderer implements UIRenderer {
+    private static final float DAY_CYCLE_SECONDS = 600f;
+    private static final float SUN_MIN_ELEVATION = 0.3f;
+    private static final float SUN_MAX_ELEVATION = 1.0f;
+
     private final Picker picker;
     private final FogInfo fog_info;
     private final Water water;
@@ -38,9 +42,12 @@ public final strictfp class DefaultRenderer implements UIRenderer {
     private final SpriteSorter sprite_sorter;
     private final RenderQueues render_queues;
     private final FloatBuffer light_array;
+    private final FloatBuffer diffuse_array;
+    private final FloatBuffer ambient_array;
     private final Cheat cheat;
 
     private Building selected_building;
+    private float sun_angle = 0f;
 
     private void drawAxes() {
         if (Globals.draw_axes) {
@@ -82,6 +89,8 @@ public final strictfp class DefaultRenderer implements UIRenderer {
         this.world = local_player.getWorld();
         this.cheat = cheat;
         this.light_array = BufferUtils.createByteBuffer(4 * 4).asFloatBuffer();
+        this.diffuse_array = BufferUtils.createByteBuffer(4 * 4).asFloatBuffer();
+        this.ambient_array = BufferUtils.createByteBuffer(4 * 4).asFloatBuffer();
         light_array.put(new float[] {-1.0f, 0.0f, 1.0f, 0.0f});
         light_array.rewind();
         this.render_queues = render_queues;
@@ -197,7 +206,32 @@ public final strictfp class DefaultRenderer implements UIRenderer {
             GL11.glPolygonMode(GL11.GL_BACK, GL11.GL_LINE);
         }
 
+        // Dynamic sun cycle
+        sun_angle += (1f / 60f) / DAY_CYCLE_SECONDS * (float) (2.0 * StrictMath.PI);
+        if (sun_angle > 2.0f * StrictMath.PI) sun_angle -= (float) (2.0 * StrictMath.PI);
+        float sun_x = (float) StrictMath.cos(sun_angle);
+        float sun_y = (float) StrictMath.sin(sun_angle) * 0.3f;
+        float elevation = SUN_MIN_ELEVATION + (SUN_MAX_ELEVATION - SUN_MIN_ELEVATION) *
+                (0.5f + 0.5f * (float) StrictMath.sin(sun_angle));
+        light_array.put(new float[] {sun_x, sun_y, elevation, 0.0f});
+        light_array.rewind();
         GL11.glLightfv(GL11.GL_LIGHT0, GL11.GL_POSITION, light_array);
+
+        // Dynamic diffuse color (warm at low elevation, white at high)
+        float warmth = 1.0f - (elevation - SUN_MIN_ELEVATION) / (SUN_MAX_ELEVATION - SUN_MIN_ELEVATION);
+        float diff_r = 1.0f;
+        float diff_g = 1.0f - warmth * 0.1f;
+        float diff_b = 1.0f - warmth * 0.2f;
+        diffuse_array.put(new float[] {diff_r, diff_g, diff_b, 1.0f});
+        diffuse_array.rewind();
+        GL11.glLightfv(GL11.GL_LIGHT0, GL11.GL_DIFFUSE, diffuse_array);
+
+        // Dynamic ambient (brighter at high sun, dimmer at low)
+        float ambient_level = 0.45f + 0.2f * elevation;
+        ambient_array.put(new float[] {ambient_level, ambient_level, ambient_level * 1.05f, 1.0f});
+        ambient_array.rewind();
+        GL11.glLightModelfv(GL11.GL_LIGHT_MODEL_AMBIENT, ambient_array);
+
         if (Globals.draw_sky) {
             sky.render();
         }
@@ -219,13 +253,14 @@ public final strictfp class DefaultRenderer implements UIRenderer {
         }
         if (Globals.process_misc) {
             element_renderer.setup(frustum_state);
+            element_renderer.getRenderState().getHealthBarRenderer().setHoveredTarget(picker.getCurrentHovered());
             world.getElementRoot().visit(element_renderer);
         }
 
         // Sort sprites
         sprite_sorter.distributeModels();
 
-        // render shadows
+        // render selection highlights only (circular halo shadows removed)
         if (Globals.process_shadows) {
             render_queues.renderShadows(landscape_renderer);
         }
@@ -252,6 +287,7 @@ public final strictfp class DefaultRenderer implements UIRenderer {
                 frustum_state);
         EmitterRenderer.render(
                 render_queues, element_renderer.getRenderState().getEmitterQueue(), frustum_state);
+        element_renderer.getRenderState().getHealthBarRenderer().render(frustum_state);
         renderRallyPoint(frustum_state);
 
         /*		float landscape_x = GUIRoot.getGUIRoot().getLandscapeLocationX();

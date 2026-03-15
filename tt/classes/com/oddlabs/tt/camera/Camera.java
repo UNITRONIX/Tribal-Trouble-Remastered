@@ -68,8 +68,8 @@ public abstract strictfp class Camera implements Animated {
         boolean bounced = false;
         viewport[0] = 0;
         viewport[1] = 0;
-        viewport[2] = LocalInput.getViewWidth();
-        viewport[3] = LocalInput.getViewHeight();
+        viewport[2] = LocalInput.getPhysicalViewWidth();
+        viewport[3] = LocalInput.getPhysicalViewHeight();
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 2; j++) {
                 proj.setIdentity();
@@ -84,8 +84,8 @@ public abstract strictfp class Camera implements Animated {
                 tmp_camera.setTargetView(proj);
 
                 StrictGLU.gluUnProject(
-                        i * LocalInput.getViewWidth(),
-                        j * LocalInput.getViewHeight(),
+                        i * LocalInput.getPhysicalViewWidth(),
+                        j * LocalInput.getPhysicalViewHeight(),
                         0f,
                         tmp_camera.getModelView(),
                         proj,

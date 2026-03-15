@@ -64,6 +64,7 @@ public strictfp class Unit extends Selectable implements Occupant, Movable {
 
     private BalancedParametricEmitter stun_marker;
     private int hit_points;
+    private int level = 0;
     private int animation;
     private float anim_speed;
     private float anim_time;
@@ -231,6 +232,18 @@ public strictfp class Unit extends Selectable implements Occupant, Movable {
 
     public final int getHitPoints() {
         return hit_points;
+    }
+
+    public final int getLevel() {
+        return level;
+    }
+
+    public final void setLevel(int level) {
+        this.level = level;
+    }
+
+    public final float getDamageMultiplier() {
+        return 1.0f + level * 0.15f;
     }
 
     public final void unmount() {
@@ -559,7 +572,8 @@ public strictfp class Unit extends Selectable implements Occupant, Movable {
                 } else if (canAttack(target, false)) {
                     pushController(new HuntController(this, (Selectable) target));
                 } else {
-                    walkToTarget(target, aggressive);
+                    boolean scan_attack = aggressive || getAbilities().hasAbilities(Abilities.ATTACK);
+                    walkToTarget(target, scan_attack);
                 }
                 break;
             case Target.ACTION_MOVE:

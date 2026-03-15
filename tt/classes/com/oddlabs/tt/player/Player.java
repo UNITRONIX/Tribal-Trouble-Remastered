@@ -33,7 +33,7 @@ import java.util.Set;
 public final strictfp class Player implements PlayerInterface {
     public static final int INITIAL_UNIT_COUNT = 20;
     public static final int MAX_BUILDING_COUNT = 20;
-    public static final int DEFAULT_MAX_UNIT_COUNT = 250;
+    public static final int DEFAULT_MAX_UNIT_COUNT = 500;
 
     private static final float[][] SET_COLORS = {
         {1f, .75f, 0f, 1f},

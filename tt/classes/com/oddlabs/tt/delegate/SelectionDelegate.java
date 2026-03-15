@@ -3,6 +3,7 @@ package com.oddlabs.tt.delegate;
 import com.oddlabs.tt.camera.GameCamera;
 import com.oddlabs.tt.camera.MapCamera;
 import com.oddlabs.tt.form.InGameChatForm;
+import com.oddlabs.tt.form.UpgradeForm;
 import com.oddlabs.tt.gui.*;
 import com.oddlabs.tt.guievent.CloseListener;
 import com.oddlabs.tt.input.Keyboard;
@@ -431,7 +432,14 @@ public final strictfp class SelectionDelegate extends ControllableCameraDelegate
                     selection_y2 = y;
                 } else if (button == LocalInput.RIGHT_BUTTON) {
                     Army selection = getViewer().getSelection().getCurrentSelection();
-                    if (selection.size() > 0 && selection.containsAbility(Abilities.TARGET)) {
+                    Building sel_building = getViewer().getSelection().getCurrentSelection().getBuilding();
+                    if (sel_building != null
+                            && sel_building.getOwner() == getViewer().getLocalPlayer()
+                            && sel_building.isComplete()
+                            && selection.size() == 1) {
+                        UpgradeForm upgrade_form = new UpgradeForm(sel_building);
+                        addChild(upgrade_form);
+                    } else if (selection.size() > 0 && selection.containsAbility(Abilities.TARGET)) {
                         getViewer()
                                 .getPicker()
                                 .pickTarget(

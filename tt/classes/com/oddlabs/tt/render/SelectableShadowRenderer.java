@@ -30,17 +30,7 @@ final strictfp class SelectableShadowRenderer extends ShadowListRenderer {
 
     protected final void renderShadows(LandscapeRenderer renderer) {
         setupShadows();
-        GL11.glColor3f(1f, 1f, 1f);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, halos[GeneratorHalos.SHADOWED].getHandle());
-        for (int i = 0; i < shadowed_list.size(); i++) {
-            ModelState model = (ModelState) shadowed_list.get(i);
-            shadowed_list.set(i, null);
-            renderShadow(
-                    renderer,
-                    model.getModel().getShadowDiameter(),
-                    model.getModel().getPositionX(),
-                    model.getModel().getPositionY());
-        }
+        // Circular halo shadows removed - using dynamic lighting only
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, halos[GeneratorHalos.SELECTED].getHandle());
         for (int i = 0; i < selection_list.size(); i++) {
             ModelState model = (ModelState) selection_list.get(i);
@@ -55,6 +45,6 @@ final strictfp class SelectableShadowRenderer extends ShadowListRenderer {
         }
         resetShadows();
         selection_list.clear();
-        shadowed_list.clear();
+        shadowed_list.clear(); // still cleared even though not rendered
     }
 }

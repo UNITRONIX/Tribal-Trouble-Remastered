@@ -316,10 +316,13 @@ public final strictfp class Picker implements Updatable {
     }
 
     private final void calcPosAndDir(int pixel_x, int pixel_y) {
+        float uiScale = LocalInput.getUIScale();
+        float phys_x = pixel_x * uiScale;
+        float phys_y = pixel_y * uiScale;
         float pixel_z = 0.5f;
         StrictGLU.gluUnProject(
-                pixel_x,
-                pixel_y,
+                phys_x,
+                phys_y,
                 pixel_z,
                 modl,
                 tmp_camera.getProjectionModelView(),
@@ -331,8 +334,8 @@ public final strictfp class Picker implements Updatable {
 
         pixel_z = 0.1f;
         StrictGLU.gluUnProject(
-                pixel_x,
-                pixel_y,
+                phys_x,
+                phys_y,
                 pixel_z,
                 modl,
                 tmp_camera.getProjectionModelView(),
@@ -546,12 +549,14 @@ public final strictfp class Picker implements Updatable {
 
     private final void setupPicking(
             CameraState camera, float x_center, float y_center, int width, int height) {
+        float uiScale = LocalInput.getUIScale();
         proj.setIdentity();
         viewport[0] = 0;
         viewport[1] = 0;
-        viewport[2] = LocalInput.getViewWidth();
-        viewport[3] = LocalInput.getViewHeight();
-        StrictGLU.gluPickMatrix(proj, x_center, y_center, width, height, viewport);
+        viewport[2] = LocalInput.getPhysicalViewWidth();
+        viewport[3] = LocalInput.getPhysicalViewHeight();
+        StrictGLU.gluPickMatrix(proj, x_center * uiScale, y_center * uiScale,
+                Math.round(width * uiScale), Math.round(height * uiScale), viewport);
         Renderer.multProjection(proj);
         tmp_camera.set(camera);
         tmp_camera.setView(proj);

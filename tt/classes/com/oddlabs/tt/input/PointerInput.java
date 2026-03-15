@@ -60,7 +60,7 @@ public final strictfp class PointerInput {
     }
 
     private static void resetCursorPos() {
-        setCursorPosition(LocalInput.getMouseX(), LocalInput.getMouseY());
+        setCursorPosition(LocalInput.getPhysicalMouseX(), LocalInput.getPhysicalMouseY());
         // clear event queue
         while (Mouse.isCreated() && Mouse.next())
             ;

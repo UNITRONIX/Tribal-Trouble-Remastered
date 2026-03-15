@@ -28,8 +28,8 @@ public final strictfp class Globals {
     public static final int DETAIL_HIGH = 2;
 
     public static final int[] TEXTURE_MIP_SHIFT = new int[] {1, 0, 0};
-    public static final int[] UNIT_HIGH_POLY_COUNT = new int[] {7500, 20000, 40000};
-    public static final int[] LANDSCAPE_POLY_COUNT = new int[] {5000, 10000, 20000};
+    public static final int[] UNIT_HIGH_POLY_COUNT = new int[] {50000, 120000, 250000};
+    public static final int[] LANDSCAPE_POLY_COUNT = new int[] {30000, 60000, 120000};
     public static final boolean[] INSERT_PLANTS = new boolean[] {false, false, true};
 
     public static final String GAME_NAME = "TribalTrouble";
@@ -117,6 +117,7 @@ public final strictfp class Globals {
     public static final float VIEW_MIN = 2f;
     public static final float VIEW_MAX = 8000.0f;
     public static final float GUI_Z = VIEW_MIN + 0.1f;
+    public static final float UI_REFERENCE_HEIGHT = 1080f;
 
     public static final int NET_PORT = 21000;
 
@@ -129,8 +130,8 @@ public final strictfp class Globals {
     public static final float LANDSCAPE_DETAIL_REPEAT_RATE = 0.25f;
     public static final float WATER_REPEAT_RATE = 0.001f;
     public static final float WATER_DETAIL_REPEAT_RATE = 0.01f;
-    public static final int LANDSCAPE_DETAIL_FADEOUT_BASE_LEVEL = 2;
-    public static final float LANDSCAPE_DETAIL_FADEOUT_FACTOR = 0.75f;
+    public static final int LANDSCAPE_DETAIL_FADEOUT_BASE_LEVEL = 4;
+    public static final float LANDSCAPE_DETAIL_FADEOUT_FACTOR = 0.92f;
 
     public static final int MAX_RENDERNODE_DEPTH = 5;
 
@@ -138,7 +139,7 @@ public final strictfp class Globals {
 
     public static final float[][] SEA_BOTTOM_COLOR = {{0.45f, 0.25f, 0.6f}, {0f, 0f, 0f}};
 
-    public static final float TREE_ERROR_DISTANCE = 100f;
+    public static final float TREE_ERROR_DISTANCE = 180f;
 
     public static final float WHEEL_SCALE = 0.01f;
 

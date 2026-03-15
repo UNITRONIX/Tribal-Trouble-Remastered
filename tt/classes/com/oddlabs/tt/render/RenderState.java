@@ -25,6 +25,7 @@ public final strictfp class RenderState implements ElementVisitor {
     private final RenderQueues render_queues;
     private final TargetRespondRenderer target_respond_renderer;
     private final SelectableShadowRenderer default_shadow_renderer;
+    private final HealthBarRenderer health_bar_renderer;
     private final Picker picker;
     private final Selection selection;
     private final LandscapeRenderer landscape_renderer;
@@ -55,6 +56,7 @@ public final strictfp class RenderState implements ElementVisitor {
                                     {0.40f, 0f}, {0.41f, 1f}, {0.48f, 1f}, {0.49f, 0f}
                                 }));
         this.target_respond_renderer = (TargetRespondRenderer) render_queues.getShadowRenderer(key);
+        this.health_bar_renderer = new HealthBarRenderer(local_player);
         this.default_shadow_renderer =
                 (SelectableShadowRenderer)
                         render_queues.getShadowRenderer(
@@ -133,6 +135,7 @@ public final strictfp class RenderState implements ElementVisitor {
                 z_offset,
                 unit.getUnitTemplate().getSelectionRadius(),
                 unit.getUnitTemplate().getSelectionHeight());
+        if (!picking) health_bar_renderer.addUnit(unit, z_offset);
     }
 
     private ElementRenderState doGetCachedState() {
@@ -260,6 +263,7 @@ public final strictfp class RenderState implements ElementVisitor {
                 building.getPositionZ(),
                 getBuildingSelectionRadius(building),
                 getBuildingSelectionHeight(building));
+        if (!picking) health_bar_renderer.addBuilding(building, building.getPositionZ());
     }
 
     final int addToRenderList(LODObject model) {
@@ -293,7 +297,9 @@ public final strictfp class RenderState implements ElementVisitor {
             };
 
     public final void visitSupplyModel(final SupplyModel model) {
-        addToRenderList(getCachedState(supply_model_visitor, model));
+        ModelState state = getCachedState(supply_model_visitor, model);
+        addToRenderList(state);
+        if (!picking && model.getShadowDiameter() > 0f) default_shadow_renderer.addToShadowList(state);
     }
 
     private static final ModelVisitor rubber_model_visitor =
@@ -403,5 +409,9 @@ public final strictfp class RenderState implements ElementVisitor {
 
     public final List getLightningQueue() {
         return lightning_queue;
+    }
+
+    public final HealthBarRenderer getHealthBarRenderer() {
+        return health_bar_renderer;
     }
 }

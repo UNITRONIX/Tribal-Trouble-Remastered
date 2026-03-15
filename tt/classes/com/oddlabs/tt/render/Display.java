@@ -81,6 +81,7 @@ public final strictfp class Display {
         }
 
         GLFW.glfwMakeContextCurrent(window);
+        GLFW.glfwSwapInterval(1); // Enable VSync
         GL.createCapabilities();
 
         // Set the window icon after the window is shown and context is created

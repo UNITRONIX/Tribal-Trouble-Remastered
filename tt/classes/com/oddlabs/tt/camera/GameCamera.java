@@ -15,8 +15,8 @@ public final strictfp class GameCamera extends Camera {
     public static final int SCROLL_BUFFER = 5;
     private static final float INIT_DISTANCE = 50;
     private static final float ANGLE_DELTA = (float) (StrictMath.PI / 2);
-    public static final float MAX_Z = 100f;
-    private static final float ZOOM_Z_DIR_MIN = -(float) StrictMath.tan(StrictMath.PI / 6);
+    public static final float MAX_Z = 200f;
+    private static final float ZOOM_Z_DIR_MIN = -(float) StrictMath.tan(StrictMath.PI / 4);
     private static final float SCROLL_ACCELERATION_SECONDS_MAX = 1f;
     private static final float SCROLL_ACCELERATION_FACTOR = 2.5f;
     private static final float SCROLL_START_MAX_SPEED = 60f;
@@ -169,6 +169,18 @@ public final strictfp class GameCamera extends Camera {
             float backup_y = getState().getTargetY();
             float backup_z = getState().getTargetZ();
 
+            // Clamp Z to MAX_Z instead of rejecting the whole zoom
+            if (temp_z > MAX_Z) {
+                float t = (MAX_Z - backup_z) / (dir_z * zoom_factor);
+                if (t > 0f && t < 1f) {
+                    temp_x = backup_x + dir_x * zoom_factor * t;
+                    temp_y = backup_y + dir_y * zoom_factor * t;
+                    temp_z = MAX_Z;
+                } else {
+                    temp_z = MAX_Z;
+                }
+            }
+
             int mid = getHeightMap().getMetersPerWorld() / 2;
             float dx = (temp_x - mid);
             float dy = (temp_y - mid);
@@ -176,7 +188,7 @@ public final strictfp class GameCamera extends Camera {
             if (squared_dist
                             < getHeightMap().getMetersPerWorld()
                                     * getHeightMap().getMetersPerWorld()
-                    && temp_z < MAX_Z) {
+                    && temp_z <= MAX_Z) {
                 getState().setTargetX(temp_x);
                 getState().setTargetY(temp_y);
                 getState().setTargetZ(temp_z);
@@ -184,14 +196,25 @@ public final strictfp class GameCamera extends Camera {
                         getState().getTargetX(),
                         getState().getTargetY(),
                         getState().getTargetZ())) {
-                    getState().setTargetX(backup_x);
-                    getState().setTargetY(backup_y);
-                    getState().setTargetZ(backup_z);
+                    // Bounce triggered — try keeping only the Z increase
+                    if (zoom_factor < 0f && temp_z > backup_z) {
+                        getState().setTargetX(backup_x);
+                        getState().setTargetY(backup_y);
+                        getState().setTargetZ(temp_z);
+                        if (bounce(backup_x, backup_y, temp_z)) {
+                            getState().setTargetX(backup_x);
+                            getState().setTargetY(backup_y);
+                            getState().setTargetZ(backup_z);
+                        }
+                    } else {
+                        getState().setTargetX(backup_x);
+                        getState().setTargetY(backup_y);
+                        getState().setTargetZ(backup_z);
+                    }
                 } else {
                     getState().setTargetX(temp_x);
                     getState().setTargetY(temp_y);
                     getState().setTargetZ(temp_z);
-                    //					setScrollSpeed();
                 }
                 checkPosition();
             }
@@ -298,10 +321,16 @@ public final strictfp class GameCamera extends Camera {
             return center_y;
         } else {
             float da = getState().getTargetVertAngle() - ROTATE_PICKING_ANGLE_MAX;
-            float pixels_per_unit = 1f / GUIRoot.getUnitsPerPixel(Globals.VIEW_MIN);
+            float physicalUnitsPerPixel = (float)
+                    (Globals.VIEW_MIN
+                            * StrictMath.tan(Globals.FOV * (StrictMath.PI / 180.0f) * 0.5f)
+                            / (LocalInput.getPhysicalViewHeight() * 0.5d));
+            float pixels_per_unit = 1f / physicalUnitsPerPixel;
             int pixels_to_screen = (int) (Globals.VIEW_MIN * pixels_per_unit);
             int dy = (int) (((float) StrictMath.tan(da)) * pixels_to_screen);
-            int y = center_y - dy;
+            // Convert physical pixel offset to virtual
+            int virtual_dy = Math.round(dy / LocalInput.getUIScale());
+            int y = center_y - virtual_dy;
             return y;
         }
     }
@@ -349,10 +378,12 @@ public final strictfp class GameCamera extends Camera {
         // LocalInput.getViewWidth() + ", " + LocalInput.getViewHeight() + ")");
 
         // Debug: Print all boundary comparison values
+        int viewW = LocalInput.getViewWidth();
+        int viewH = LocalInput.getViewHeight();
         int leftBoundary = SCROLL_BUFFER;
         int topBoundary = SCROLL_BUFFER;
-        int rightBoundary = LocalInput.getViewWidth() - 1 - SCROLL_BUFFER;
-        int bottomBoundary = LocalInput.getViewHeight() - 1 - SCROLL_BUFFER;
+        int rightBoundary = viewW - 1 - SCROLL_BUFFER;
+        int bottomBoundary = viewH - 1 - SCROLL_BUFFER;
 
         // System.out.println("=== BOUNDARY DEBUG ===");
         // System.out.println("Mouse position: x=" + x + ", y=" + y);
@@ -380,8 +411,8 @@ public final strictfp class GameCamera extends Camera {
                     setScrollSpeed();
                 }
             }
-            scroll_x = (float) (x - LocalInput.getViewWidth() / 2);
-            scroll_y = (float) (y - LocalInput.getViewHeight() / 2);
+            scroll_x = (float) (x - viewW / 2);
+            scroll_y = (float) (y - viewH / 2);
             float inv_length =
                     1f / (float) StrictMath.sqrt(scroll_x * scroll_x + scroll_y * scroll_y);
             scroll_x *= inv_length;

@@ -55,8 +55,9 @@ public final strictfp class FirstPersonCamera extends Camera {
     }
 
     public final void mouseMoved(int x, int y) {
-        int dx = x - base_x;
-        int dy = y - base_y;
+        float s = LocalInput.getUIScale();
+        int dx = Math.round(x * s) - base_x;
+        int dy = Math.round(y * s) - base_y;
         getState().setTargetHorizAngle(getState().getTargetHorizAngle() - dx * SCALE_HORIZ);
         if (Settings.getSettings().invert_camera_pitch)
             getState().setTargetVertAngle(getState().getTargetVertAngle() - dy * SCALE_VERT);

@@ -1014,7 +1014,7 @@ public final strictfp class Renderer {
         GL11.glLightfv(GL11.GL_LIGHT0, GL11.GL_DIFFUSE, float_array);
         GL11.glLightModeli(GL11.GL_LIGHT_MODEL_LOCAL_VIEWER, 1);
 
-        float[] global_ambient = {0.65f, 0.65f, 0.65f, 1.0f};
+        float[] global_ambient = {0.50f, 0.50f, 0.52f, 1.0f};
         float_array.put(global_ambient);
         float_array.rewind();
         GL11.glLightModelfv(GL11.GL_LIGHT_MODEL_AMBIENT, float_array);

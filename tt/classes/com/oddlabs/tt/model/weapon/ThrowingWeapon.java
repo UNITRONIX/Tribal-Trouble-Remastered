@@ -9,6 +9,7 @@ import com.oddlabs.tt.model.Accessories;
 import com.oddlabs.tt.model.Selectable;
 import com.oddlabs.tt.model.Unit;
 import com.oddlabs.tt.model.UnitTemplate;
+import com.oddlabs.tt.particle.WeaponTrailEmitter;
 import com.oddlabs.tt.player.Player;
 import com.oddlabs.tt.render.SpriteKey;
 import com.oddlabs.tt.util.StateChecksum;
@@ -24,6 +25,7 @@ public abstract strictfp class ThrowingWeapon extends Accessories implements Ani
     private final Audio[] hit_sounds;
     private final Player owner;
     private final boolean hit;
+    private final WeaponTrailEmitter trail_emitter;
 
     private Selectable target;
     private float start_x;
@@ -36,6 +38,7 @@ public abstract strictfp class ThrowingWeapon extends Accessories implements Ani
     private float time;
     private float z_speed;
     private float deterministic_z;
+    private final float damage_multiplier;
 
     public ThrowingWeapon(
             boolean hit,
@@ -49,6 +52,7 @@ public abstract strictfp class ThrowingWeapon extends Accessories implements Ani
         this.hit_sounds = hit_sounds;
 
         owner = src.getOwner();
+        damage_multiplier = src.getDamageMultiplier();
 
         setPosition(
                 src.getPositionX()
@@ -79,6 +83,16 @@ public abstract strictfp class ThrowingWeapon extends Accessories implements Ani
                                         target.getOwner().getWorld().getRandom().nextFloat() * .2f
                                                 + .9f));
         target.getOwner().getWorld().getAnimationManagerGameTime().registerAnimation(this);
+
+        // Weapon trail effect
+        trail_emitter =
+                new WeaponTrailEmitter(
+                        target.getOwner().getWorld(),
+                        getPositionX(),
+                        getPositionY(),
+                        getPositionZ() + deterministic_z,
+                        target.getOwner().getWorld().getRacesResources().getSmokeTextures(),
+                        target.getOwner().getWorld().getAnimationManagerRealTime());
 
         // stats
         src.getOwner().weaponThrown();
@@ -181,11 +195,14 @@ public abstract strictfp class ThrowingWeapon extends Accessories implements Ani
         setPosition(x, y);
         reinsert();
         audio_player.setPos(getPositionX(), getPositionY(), getPositionZ());
+        trail_emitter.updatePosition(
+                getPositionX(), getPositionY(), getPositionZ() + deterministic_z);
     }
 
     protected void hitTarget(boolean hit, Player owner, Selectable target) {
         owner.getWorld().getAnimationManagerGameTime().removeAnimation(this);
         audio_player.stop();
+        trail_emitter.done();
         remove();
         if (hit) damageTarget(target);
     }
@@ -212,7 +229,7 @@ public abstract strictfp class ThrowingWeapon extends Accessories implements Ani
                                                     * ((UnitTemplate) target.getTemplate())
                                                             .getDeathPitch()));
         }
-        target.hit(getDamage(), dir_x, dir_y, owner);
+        target.hit((int) StrictMath.max(1, StrictMath.round(getDamage() * damage_multiplier)), dir_x, dir_y, owner);
     }
 
     protected abstract int getDamage();
