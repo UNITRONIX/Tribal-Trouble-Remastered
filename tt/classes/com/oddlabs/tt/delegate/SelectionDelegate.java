@@ -433,7 +433,9 @@ public final strictfp class SelectionDelegate extends ControllableCameraDelegate
                 } else if (button == LocalInput.RIGHT_BUTTON) {
                     Army selection = getViewer().getSelection().getCurrentSelection();
                     Building sel_building = getViewer().getSelection().getCurrentSelection().getBuilding();
+                    Target hovered = getViewer().getPicker().getCurrentHovered();
                     if (sel_building != null
+                            && hovered == sel_building
                             && sel_building.getOwner() == getViewer().getLocalPlayer()
                             && sel_building.isComplete()
                             && selection.size() == 1) {

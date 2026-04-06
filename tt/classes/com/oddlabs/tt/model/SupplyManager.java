@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public strictfp class SupplyManager implements Animated {
-    private static final float SLEEP_TIME = 5f;
+    private static final float SLEEP_TIME = 3f;
     private static final float SPAWN_TIME = 3f;
-    private static final float MAX_EMPTY_SUPPLIES = .5f;
+    private static final float MAX_EMPTY_SUPPLIES = .15f;
 
     private final List empty_supplies = new ArrayList();
     private final World world;

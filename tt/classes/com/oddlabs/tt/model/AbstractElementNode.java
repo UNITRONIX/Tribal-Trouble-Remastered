@@ -89,8 +89,8 @@ public abstract strictfp class AbstractElementNode extends BoundingBox {
             float y = UnitGrid.coordinateFromGrid(grid_y) + (world.getRandom().nextFloat() - .5f);
             float rotation = world.getRandom().nextFloat() * 360f;
             boolean mega = (i % 5 == 0);
-            float size = mega ? 5f : 2f;
-            int supplies = mega ? 45 : 15;
+            float size = mega ? 7.5f : 2f;
+            int supplies = mega ? 81 : 15;
             new RockSupply(
                     world,
                     sprite_renderers[i % sprite_renderers.length],
@@ -117,8 +117,8 @@ public abstract strictfp class AbstractElementNode extends BoundingBox {
             float y = UnitGrid.coordinateFromGrid(grid_y) + (world.getRandom().nextFloat() - .5f);
             float rotation = world.getRandom().nextFloat() * 360f;
             boolean mega = (i % 5 == 0);
-            float size = mega ? 5f : 2f;
-            int supplies = mega ? 45 : 15;
+            float size = mega ? 7.5f : 2f;
+            int supplies = mega ? 81 : 15;
             new IronSupply(
                     world,
                     sprite_renderers[i % sprite_renderers.length],

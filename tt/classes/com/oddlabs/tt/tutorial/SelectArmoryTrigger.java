@@ -12,6 +12,7 @@ public final strictfp class SelectArmoryTrigger extends TutorialTrigger {
         player.enableAttacking(false);
         player.enableBuilding(Race.BUILDING_QUARTERS, false);
         player.enableBuilding(Race.BUILDING_TOWER, false);
+        player.enableBuilding(Race.BUILDING_WALL, false);
         player.enableHarvesting(false);
         player.enableWeapons(false);
         player.enableArmies(false);

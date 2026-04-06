@@ -53,7 +53,7 @@ public final strictfp class TerrainMenu extends Group {
 
     private static final int NORMAL = 2;
     private static final int HARD = 3;
-    private static final int[] SIZES = new int[] {256, 512, 1024};
+    private static final int[] SIZES = new int[] {256, 512, 1024, 2048, 4096, 8192};
 
     private static final int SLIDER_LENGTH = 250;
     private static final int BUTTON_WIDTH = 100;
@@ -62,7 +62,7 @@ public final strictfp class TerrainMenu extends Group {
     private static final String SEED_CARDINALITY = "40000";
     private static final int SLIDER_CARDINALITY = 11;
     private static final int TERRAIN_TYPE_CARDINALITY = 2;
-    private static final int SIZE_CARDINALITY = 3;
+    private static final int SIZE_CARDINALITY = 6;
     private static final int DIFFICULTY_CARDINALITY = 4;
     private static final int RACE_CARDINALITY = 2;
     private static final int TEAM_CARDINALITY = 6;
@@ -214,6 +214,12 @@ public final strictfp class TerrainMenu extends Group {
                 new PulldownItem(ServerMessageBundler.getSizeString(Game.SIZE_MEDIUM)));
         pulldown_size.addItem(
                 new PulldownItem(ServerMessageBundler.getSizeString(Game.SIZE_LARGE)));
+        pulldown_size.addItem(
+                new PulldownItem(ServerMessageBundler.getSizeString(Game.SIZE_HUGE)));
+        pulldown_size.addItem(
+                new PulldownItem(ServerMessageBundler.getSizeString(Game.SIZE_EPIC)));
+        pulldown_size.addItem(
+                new PulldownItem(ServerMessageBundler.getSizeString(Game.SIZE_ENDLESS)));
 
         PulldownButton pb_size = new PulldownButton(gui_root, pulldown_size, 1, 150);
         group_size.addChild(pb_size);
@@ -754,7 +760,7 @@ public final strictfp class TerrainMenu extends Group {
                                 Player.INITIAL_UNIT_COUNT,
                                 multiplayer
                                         ? game.getMaxUnitCount()
-                                        : Player.DEFAULT_MAX_UNIT_COUNT),
+                                        : getMaxUnitCountForSize(pulldown_size.getChosenItemIndex())),
                         ingame_info,
                         new Menu.DefaultWorldInitAction(),
                         game,
@@ -794,6 +800,24 @@ public final strictfp class TerrainMenu extends Group {
         }
         System.out.println("Map code: " + label_mapcode.getContents());
         return true;
+    }
+
+    /** Returns max unit count scaled by map size index */
+    private int getMaxUnitCountForSize(int sizeIndex) {
+        switch (sizeIndex) {
+            case 0: // 256 - Small
+            case 1: // 512 - Medium
+            case 2: // 1024 - Large
+                return Player.DEFAULT_MAX_UNIT_COUNT;     // 500
+            case 3: // 2048 - Huge
+                return 1000;
+            case 4: // 4096 - Epic
+                return 2000;
+            case 5: // 8192 - Endless
+                return 5000;
+            default:
+                return Player.DEFAULT_MAX_UNIT_COUNT;
+        }
     }
 
     /** Creates an array of translated AI names based on the number of max_players */

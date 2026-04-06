@@ -293,6 +293,10 @@ public final strictfp class RenderState implements ElementVisitor {
                     GL11.glTranslatef(
                             model.getPositionX(), model.getPositionY(), model.getPositionZ());
                     GL11.glRotatef(model.getRotation(), 0f, 0f, 1f);
+                    if (model.isMega()) {
+                        float s = model.getSize() / 2f;
+                        GL11.glScalef(s, s, s);
+                    }
                 }
             };
 

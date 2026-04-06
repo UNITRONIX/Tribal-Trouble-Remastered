@@ -51,9 +51,11 @@ public final strictfp class RacesResources {
     public static final int QUARTERS_SIZE = 5;
     public static final int ARMORY_SIZE = 5;
     public static final int TOWER_SIZE = 3;
+    public static final int WALL_SIZE = 3;
     public static final int QUARTERS_HIT_POINTS = 200;
     public static final int ARMORY_HIT_POINTS = 200;
     public static final int TOWER_HIT_POINTS = 100;
+    public static final int WALL_HIT_POINTS = 150;
     public static final int VIKING_CHIEFTAIN_HIT_POINTS = 60;
     public static final int NATIVE_CHIEFTAIN_HIT_POINTS = 40;
 
@@ -552,6 +554,39 @@ public final strictfp class RacesResources {
                         0f,
                         Utils.getBundleString(bundle, "tower"));
         ProgressForm.progress(1f / num_progress);
+        BuildingTemplate viking_wall_template =
+                createBuildingTemplate(
+                        queues,
+                        Race.BUILDING_WALL,
+                        "/geometry/vikings/tower.binsprite",
+                        1.5f,
+                        4f,
+                        "/geometry/vikings/tower_halfbuilt.binsprite",
+                        2f,
+                        3f,
+                        "/geometry/vikings/tower_start.binsprite",
+                        2.5f,
+                        1f,
+                        8f,
+                        .009f,
+                        WALL_SIZE,
+                        2f,
+                        6f,
+                        15,
+                        WALL_HIT_POINTS,
+                        null,
+                        new Abilities(Abilities.TARGET),
+                        new float[] {0f, 1f, 3f},
+                        0f,
+                        2.5f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        Utils.getBundleString(bundle, "wall"));
+        ProgressForm.progress(1f / num_progress);
         BuildingTemplate native_quarters_template =
                 createBuildingTemplate(
                         queues,
@@ -654,6 +689,39 @@ public final strictfp class RacesResources {
                         0f,
                         0f,
                         Utils.getBundleString(bundle, "tower"));
+        ProgressForm.progress(1f / num_progress);
+        BuildingTemplate native_wall_template =
+                createBuildingTemplate(
+                        queues,
+                        Race.BUILDING_WALL,
+                        "/geometry/natives/tower.binsprite",
+                        1.5f,
+                        4f,
+                        "/geometry/natives/tower_halfbuilt.binsprite",
+                        1f,
+                        3f,
+                        "/geometry/natives/tower_start.binsprite",
+                        1.5f,
+                        1f,
+                        5f,
+                        .025f,
+                        WALL_SIZE,
+                        2f,
+                        6f,
+                        15,
+                        WALL_HIT_POINTS,
+                        null,
+                        new Abilities(Abilities.TARGET),
+                        new float[] {0f, 1f, 3f},
+                        0f,
+                        2.5f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        0f,
+                        Utils.getBundleString(bundle, "wall"));
         ProgressForm.progress(1f / num_progress);
         final float shadow_diameter_warrior = 1.9f;
         final float shadow_diameter_peon = 1.6f;
@@ -1067,6 +1135,7 @@ public final strictfp class RacesResources {
                         native_quarters_template,
                         native_armory_template,
                         native_tower_template,
+                        native_wall_template,
                         native_warrior_rock_template,
                         native_warrior_iron_template,
                         native_warrior_rubber_template,
@@ -1095,6 +1164,7 @@ public final strictfp class RacesResources {
                         viking_quarters_template,
                         viking_armory_template,
                         viking_tower_template,
+                        viking_wall_template,
                         viking_warrior_rock_template,
                         viking_warrior_iron_template,
                         viking_warrior_rubber_template,

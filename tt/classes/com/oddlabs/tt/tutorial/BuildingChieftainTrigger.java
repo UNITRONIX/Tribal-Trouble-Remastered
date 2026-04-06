@@ -17,6 +17,7 @@ public final strictfp class BuildingChieftainTrigger extends TutorialTrigger {
         //	player.enableQuarters(false);
         player.enableBuilding(Race.BUILDING_ARMORY, false);
         player.enableBuilding(Race.BUILDING_TOWER, false);
+        player.enableBuilding(Race.BUILDING_WALL, false);
         player.enableHarvesting(false);
         player.enableWeapons(false);
         player.enableArmies(false);

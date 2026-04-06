@@ -121,6 +121,21 @@ public final strictfp class Landscape {
                 height_scale = 64;
                 access_threshold = 0.025f;
                 break;
+            case 2048:
+                size_multiplier = 64;
+                height_scale = 80;
+                access_threshold = 0.02f;
+                break;
+            case 4096:
+                size_multiplier = 256;
+                height_scale = 96;
+                access_threshold = 0.015f;
+                break;
+            case 8192:
+                size_multiplier = 1024;
+                height_scale = 112;
+                access_threshold = 0.012f;
+                break;
             default:
                 size_multiplier = 0;
                 assert false : "illegal meters_per_world";
@@ -137,12 +152,14 @@ public final strictfp class Landscape {
         area = size_multiplier * 10000f;
         max_plants = size_multiplier * 64;
 
+        final int MAX_TREES_CAP = 32768;
         if (terrain_type == NATIVE) {
-            max_trees = (int) StrictMath.pow(2, 2 * Utils.powerOf2Log2(meters_per_world) - 9);
+            int raw_trees = (int) StrictMath.pow(2, 2 * Utils.powerOf2Log2(meters_per_world) - 9);
+            max_trees = Math.min(raw_trees, MAX_TREES_CAP);
             max_palmtrees = max_trees >> 1;
         } else {
-            max_trees =
-                    (int) (.75f * StrictMath.pow(2, 2 * Utils.powerOf2Log2(meters_per_world) - 9));
+            int raw_trees = (int) (.75f * StrictMath.pow(2, 2 * Utils.powerOf2Log2(meters_per_world) - 9));
+            max_trees = Math.min(raw_trees, MAX_TREES_CAP);
             max_palmtrees = max_trees;
         }
 
@@ -171,6 +188,7 @@ public final strictfp class Landscape {
 
         switch (terrain_type) {
             case NATIVE:
+                System.out.println("[LANDSCAPE] Starting generateStructuresNative...");
                 generateStructuresNative(
                         voronoi4,
                         voronoi8,
@@ -182,9 +200,12 @@ public final strictfp class Landscape {
                         noise8,
                         noise256);
                 ProgressForm.progress();
+                System.out.println("[LANDSCAPE] Starting generateTerrainNative...");
                 generateTerrainNative();
+                System.out.println("[LANDSCAPE] generateTerrainNative done.");
                 break;
             case VIKING:
+                System.out.println("[LANDSCAPE] Starting generateStructuresViking...");
                 generateStructuresViking(
                         voronoi4,
                         voronoi8,
@@ -196,7 +217,9 @@ public final strictfp class Landscape {
                         noise8,
                         noise256);
                 ProgressForm.progress();
+                System.out.println("[LANDSCAPE] Starting generateTerrainViking...");
                 generateTerrainViking();
+                System.out.println("[LANDSCAPE] generateTerrainViking done.");
                 break;
             default:
                 assert false : "illegal terrain_type";
@@ -205,10 +228,24 @@ public final strictfp class Landscape {
 
         if (DEBUG) height.toLayer().saveAsPNG("height");
         ProgressForm.progress();
+        System.out.println("[LANDSCAPE] Starting generateAlphas...");
         Channel grass_alpha = generateAlphas();
+        System.out.println("[LANDSCAPE] generateAlphas done.");
         ProgressForm.progress();
+        System.out.println("[LANDSCAPE] Starting generateUnitLocations...");
         generateUnitLocations(initial_unit_count, random_start_pos);
+        System.out.println("[LANDSCAPE] Starting generateSupplies...");
         generateSupplies(grass_alpha);
+        System.out.println("[LANDSCAPE] generateSupplies done.");
+
+        if (DEBUG) access.toLayer().saveAsPNG("access_connected");
+
+        // Free temporary channels no longer needed to reduce memory pressure on large maps
+        slope = null;
+        relheight = null;
+        shadow = null;
+        highlight = null;
+        access = null;
 
         // scale height map vertically
         for (int y = 0; y < unit_grids_per_world; y++) {
@@ -216,8 +253,6 @@ public final strictfp class Landscape {
                 height.putPixel(x, y, height_scale * height.getPixel(x, y));
             }
         }
-
-        if (DEBUG) access.toLayer().saveAsPNG("access_connected");
 
         // create blend infos
         blend_infos =
@@ -542,6 +577,7 @@ public final strictfp class Landscape {
         alpha_maps = new GLByteImage[7];
 
         // generate height map
+        System.out.println("[TERRAIN-N] Creating Mountain " + unit_grids_per_world + "x" + unit_grids_per_world + "...");
         height =
                 new Mountain(
                                 unit_grids_per_world,
@@ -550,6 +586,7 @@ public final strictfp class Landscape {
                                 seed)
                         .toChannel()
                         .multiply(0.67f);
+        System.out.println("[TERRAIN-N] Mountain done. Creating Voronoi...");
         Voronoi voronoi = new Voronoi(unit_grids_per_world, features, features, 1, 1f, seed);
         Channel cliffs = voronoi.getDistance(-1f, 1f, 0f).brightness(1.5f).multiply(0.33f);
         height.channelAdd(cliffs);
@@ -561,11 +598,22 @@ public final strictfp class Landscape {
             height.channelSubtract(voronoi.getDistance(-1f, 1f, 0f).gamma(.5f).flipV().rotate(90));
         }
 
+        System.out.println("[TERRAIN-N] Starting perturb...");
         height.perturb(new Midpoint(unit_grids_per_world, 2, 0.5f, seed).toChannel(), 0.25f);
         Channel shape = new Hill(unit_grids_per_world, Hill.OVAL).toChannel();
         height.channelAdd(shape.copy().multiply(0.15f));
         height.channelSubtract(shape.copy().invert().multiply(0.5f));
-        height.erode((24f - hills * 12f) / unit_grids_per_world, unit_grids_per_world >> 2);
+        // Work-budget cap: limit total operations (iters * grid^2) to ~100M
+        int erode_iters;
+        {
+            int raw = unit_grids_per_world >> 2;
+            long grid_area = (long) unit_grids_per_world * unit_grids_per_world;
+            int work_limited = (int) StrictMath.max(4, 100_000_000L / grid_area);
+            erode_iters = StrictMath.min(raw, work_limited);
+        }
+        System.out.println("[TERRAIN-N] Starting erode (iters=" + erode_iters + ", grid=" + unit_grids_per_world + ")...");
+        height.erode((24f - hills * 12f) / unit_grids_per_world, erode_iters);
+        System.out.println("[TERRAIN-N] Erode done. Smooth + beaches...");
         height.channelMultiply(shape.gamma2());
         height.smooth(1);
         height = beaches(height);
@@ -582,13 +630,25 @@ public final strictfp class Landscape {
             }
         }
 
+        System.out.println("[TERRAIN-N] Starting slope...");
         slope = height.copy().lineart();
         if (DEBUG) slope.copy().dynamicRange().toLayer().saveAsPNG("slope");
+        // Work-budget cap: limit total operations (grid^2 * 2*radius) to ~200M
+        int rel_radius;
+        {
+            int raw = StrictMath.max(1, unit_grids_per_world >> 5);
+            long grid_area = (long) unit_grids_per_world * unit_grids_per_world;
+            int radius_limited = (int) StrictMath.max(4, 200_000_000L / (grid_area * 2));
+            rel_radius = StrictMath.min(raw, radius_limited);
+        }
+        System.out.println("[TERRAIN-N] Starting relativeIntensity (radius=" + rel_radius + ")...");
         relheight =
                 height.copy()
-                        .relativeIntensityNormalized(StrictMath.max(1, unit_grids_per_world >> 5));
+                        .relativeIntensityNormalized(rel_radius);
+        System.out.println("[TERRAIN-N] relativeIntensity done. Starting largestConnected...");
         if (DEBUG) relheight.toLayer().saveAsPNG("relheight");
         access = generateThresholdMap(slope, access_threshold).largestConnected(1f);
+        System.out.println("[TERRAIN-N] largestConnected done.");
         access_exported = access.copy();
         if (DEBUG) access.toLayer().saveAsPNG("access");
         build =
@@ -600,6 +660,7 @@ public final strictfp class Landscape {
         alpha_maps = new GLByteImage[7];
 
         // generate height map
+        System.out.println("[TERRAIN-V] Creating Mountain " + unit_grids_per_world + "x" + unit_grids_per_world + "...");
         height =
                 new Mountain(
                                 unit_grids_per_world,
@@ -612,6 +673,7 @@ public final strictfp class Landscape {
                         .gamma2()
                         .multiply(0.67f);
 
+        System.out.println("[TERRAIN-V] Mountain done. Voronoi...");
         Voronoi voronoi = new Voronoi(unit_grids_per_world, 8, 8, 1, 1f, seed, true);
         Channel cliffs = voronoi.getDistance(-1f, 1f, 0f).brightness(1.25f).multiply(0.33f);
         height.channelAdd(cliffs).dynamicRange();
@@ -624,9 +686,19 @@ public final strictfp class Landscape {
             height.channelSubtract(voronoi2.getDistance(-1f, 1f, 0f).gamma(.5f).multiply(.5f));
         }
 
+        System.out.println("[TERRAIN-V] Starting erodeThermal...");
         Channel hitpoint = voronoi.getHitpoint().smooth(1);
+        // Work-budget cap: limit total operations (iters * grid^2) to ~100M
+        int erodeT_iters;
+        {
+            int raw = unit_grids_per_world >> 3;
+            long grid_area = (long) unit_grids_per_world * unit_grids_per_world;
+            int work_limited = (int) StrictMath.max(4, 100_000_000L / grid_area);
+            erodeT_iters = StrictMath.min(raw, work_limited);
+        }
         Channel hitpoint2 =
-                hitpoint.copy().erodeThermal(4f / unit_grids_per_world, unit_grids_per_world >> 3);
+                hitpoint.copy().erodeThermal(4f / unit_grids_per_world, erodeT_iters);
+        System.out.println("[TERRAIN-V] erodeThermal done. Building heightcut...");
         Channel noise =
                 new Midpoint(unit_grids_per_world, 3, 0.25f, seed)
                         .toChannel()
@@ -635,20 +707,33 @@ public final strictfp class Landscape {
                 hitpoint.channelMultiply(noise.copy().invert())
                         .channelAdd(hitpoint2.copy().channelMultiply(noise));
         height.channelMultiply(heightcut);
+        System.out.println("[TERRAIN-V] Starting perturb + erode...");
         height.perturb(new Midpoint(unit_grids_per_world, 2, 0.5f, seed).toChannel(), 0.25f);
-        height.erode((24f - hills * 12f) / unit_grids_per_world, unit_grids_per_world >> 2);
+        // Work-budget cap: limit total operations (iters * grid^2) to ~100M
+        int erode_iters;
+        {
+            int raw = unit_grids_per_world >> 2;
+            long grid_area = (long) unit_grids_per_world * unit_grids_per_world;
+            int work_limited = (int) StrictMath.max(4, 100_000_000L / grid_area);
+            erode_iters = StrictMath.min(raw, work_limited);
+        }
+        System.out.println("[TERRAIN-V] erode iters=" + erode_iters);
+        height.erode((24f - hills * 12f) / unit_grids_per_world, erode_iters);
+        System.out.println("[TERRAIN-V] erode done. Shape + roughness...");
 
         Channel shape =
                 new Hill(unit_grids_per_world, Hill.SQUARE).toChannel().smoothGain().gamma8();
         height.channelMultiply(shape);
 
         // add roughness to inaccessible areas
+        System.out.println("[TERRAIN-V] Starting slope.largestConnected...");
         slope = height.copy().lineart();
         Channel peakarea =
                 slope.threshold(0f, access_threshold)
                         .largestConnected(1f)
                         .invert()
                         .channelMultiply(hitpoint2);
+        System.out.println("[TERRAIN-V] largestConnected (roughness) done.");
         Channel peaks =
                 new Midpoint(unit_grids_per_world, 4, 0.75f, 42)
                         .toChannel()
@@ -671,11 +756,22 @@ public final strictfp class Landscape {
 
         slope = height.copy().lineart();
         if (DEBUG) slope.copy().dynamicRange().toLayer().saveAsPNG("slope");
+        // Work-budget cap: limit total operations (grid^2 * 2*radius) to ~200M
+        int rel_radius;
+        {
+            int raw = StrictMath.max(1, unit_grids_per_world >> 5);
+            long grid_area = (long) unit_grids_per_world * unit_grids_per_world;
+            int radius_limited = (int) StrictMath.max(4, 200_000_000L / (grid_area * 2));
+            rel_radius = StrictMath.min(raw, radius_limited);
+        }
+        System.out.println("[TERRAIN-V] Starting relativeIntensity (radius=" + rel_radius + ")...");
         relheight =
                 height.copy()
-                        .relativeIntensityNormalized(StrictMath.max(1, unit_grids_per_world >> 5));
+                        .relativeIntensityNormalized(rel_radius);
+        System.out.println("[TERRAIN-V] relativeIntensity done. Starting largestConnected...");
         if (DEBUG) relheight.toLayer().saveAsPNG("relheight");
         access = generateThresholdMap(slope, access_threshold).largestConnected(1f);
+        System.out.println("[TERRAIN-V] largestConnected done.");
         access_exported = access.copy();
         if (DEBUG) access.toLayer().saveAsPNG("access");
         build =

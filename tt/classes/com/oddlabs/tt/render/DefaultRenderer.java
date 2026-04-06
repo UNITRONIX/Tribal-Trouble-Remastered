@@ -48,6 +48,7 @@ public final strictfp class DefaultRenderer implements UIRenderer {
 
     private Building selected_building;
     private float sun_angle = 0f;
+    private final PostProcessPipeline postProcess = new PostProcessPipeline();
 
     private void drawAxes() {
         if (Globals.draw_axes) {
@@ -232,6 +233,13 @@ public final strictfp class DefaultRenderer implements UIRenderer {
         ambient_array.rewind();
         GL11.glLightModelfv(GL11.GL_LIGHT_MODEL_AMBIENT, ambient_array);
 
+        if (Globals.process_bloom || Globals.process_ssao) {
+            postProcess.init(Display.getWidth(), Display.getHeight());
+            if (postProcess.isSupported()) {
+                postProcess.beginScene();
+            }
+        }
+
         if (Globals.draw_sky) {
             sky.render();
         }
@@ -311,6 +319,11 @@ public final strictfp class DefaultRenderer implements UIRenderer {
         			}
         //			UnitGrid.getGrid().debugRender(landscape_x, landscape_y);
         		}*/
+        if ((Globals.process_bloom || Globals.process_ssao) && postProcess.isSupported()) {
+            postProcess.endSceneAndApply();
+            GL11.glViewport(0, 0, Display.getWidth(), Display.getHeight());
+        }
+
         fog_info.disableFog();
         if (Globals.line_mode || (cheat.line_mode)) {
             GL11.glPolygonMode(GL11.GL_FRONT, GL11.GL_FILL);

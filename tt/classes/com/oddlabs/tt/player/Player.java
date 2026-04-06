@@ -36,13 +36,18 @@ public final strictfp class Player implements PlayerInterface {
     public static final int DEFAULT_MAX_UNIT_COUNT = 500;
 
     private static final float[][] SET_COLORS = {
-        {1f, .75f, 0f, 1f},
-        {0f, .5f, 1f, 1f},
-        {1f, 0f, .25f, 1f},
-        {0f, 1f, .75f, 1f},
-        {.75f, 0f, 1f, 1f},
-        {.75f, 1f, 0f, 1f},
-        {.25f, 1f, 0f, 1f}
+        {1f, .75f, 0f, 1f},      // orange
+        {0f, .5f, 1f, 1f},       // blue
+        {1f, 0f, .25f, 1f},      // red
+        {0f, 1f, .75f, 1f},      // cyan
+        {.75f, 0f, 1f, 1f},      // purple
+        {.75f, 1f, 0f, 1f},      // lime
+        {.25f, 1f, 0f, 1f},      // green
+        {1f, .25f, .75f, 1f},    // pink
+        {0f, .75f, .5f, 1f},     // teal
+        {1f, .5f, 0f, 1f},       // dark orange
+        {.5f, .25f, 1f, 1f},     // indigo
+        {.75f, .75f, 0f, 1f}     // yellow
     };
 
     public static final float[][] COLORS = generatePlayerColors();

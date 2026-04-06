@@ -46,6 +46,8 @@ public final strictfp class Globals {
     public static boolean process_trees = true;
     public static boolean process_misc = true;
     public static boolean process_shadows = true;
+    public static boolean process_bloom = true;
+    public static boolean process_ssao = true;
 
     public static boolean draw_status = false;
     public static boolean draw_landscape = true;

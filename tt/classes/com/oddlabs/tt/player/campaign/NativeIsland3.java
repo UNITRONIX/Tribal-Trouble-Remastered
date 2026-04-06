@@ -145,6 +145,7 @@ public final strictfp class NativeIsland3 extends Island {
         getViewer().getLocalPlayer().enableBuilding(Race.BUILDING_QUARTERS, false);
         getViewer().getLocalPlayer().enableBuilding(Race.BUILDING_ARMORY, false);
         getViewer().getLocalPlayer().enableBuilding(Race.BUILDING_TOWER, false);
+        getViewer().getLocalPlayer().enableBuilding(Race.BUILDING_WALL, false);
 
         // Insert native men
         ResourceBundle player_bundle = ResourceBundle.getBundle(Player.class.getName());

@@ -80,6 +80,12 @@ public final strictfp class IslandGenerator implements WorldGenerator {
                                         2,
                                         Globals.TEXTURE_MIP_SHIFT[
                                                 Settings.getSettings().graphic_detail]);
+        // Cap chunk count to max 32x32 for large maps to prevent freeze
+        int max_chunks = 32;
+        while (texels_per_grid_unit > 1
+                && grid_units * texels_per_grid_unit / TEXELS_PER_CHUNK > max_chunks) {
+            texels_per_grid_unit /= 2;
+        }
         return texels_per_grid_unit;
     }
 

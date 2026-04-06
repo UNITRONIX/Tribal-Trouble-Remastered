@@ -105,6 +105,14 @@ public abstract strictfp class SupplyModel extends Model implements Supply, Targ
         return size;
     }
 
+    public final int getNumSupplies() {
+        return num_supplies;
+    }
+
+    public final boolean isMega() {
+        return size > 3f;
+    }
+
     public final int getGridX() {
         return grid_x;
     }

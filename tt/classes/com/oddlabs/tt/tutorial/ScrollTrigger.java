@@ -15,6 +15,7 @@ public final strictfp class ScrollTrigger extends TutorialTrigger {
         player.enableBuilding(Race.BUILDING_QUARTERS, false);
         player.enableBuilding(Race.BUILDING_ARMORY, false);
         player.enableBuilding(Race.BUILDING_TOWER, false);
+        player.enableBuilding(Race.BUILDING_WALL, false);
         player.enableChieftains(false);
     }
 

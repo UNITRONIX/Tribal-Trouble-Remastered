@@ -485,9 +485,11 @@ public final strictfp class Building extends Selectable implements Occupant {
             if (build_points == getBuildingTemplate().getMaxHitPoints()) {
                 getOwner().getWorld().getNotificationListener().newSelectableNotification(this);
                 getAbilities().addAbilities(getTemplate().getAbilities());
-                supply_containers.put(
-                        Unit.class,
-                        getBuildingTemplate().getUnitContainerFactory().createContainer(this));
+                if (getBuildingTemplate().getUnitContainerFactory() != null) {
+                    supply_containers.put(
+                            Unit.class,
+                            getBuildingTemplate().getUnitContainerFactory().createContainer(this));
+                }
                 if (getAbilities().hasAbilities(Abilities.SUPPLY_CONTAINER)) {
                     SupplyContainer tree_supply = new SupplyContainer(MAX_SUPPLY_COUNT);
                     SupplyContainer rock_supply = new SupplyContainer(MAX_SUPPLY_COUNT);

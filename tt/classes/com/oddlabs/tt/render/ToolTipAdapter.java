@@ -58,10 +58,20 @@ final strictfp class ToolTipAdapter implements ToolTipVisitor, ToolTip {
     }
 
     public final void visitSupply(Supply model) {
+        if (model instanceof com.oddlabs.tt.model.SupplyModel) {
+            com.oddlabs.tt.model.SupplyModel sm = (com.oddlabs.tt.model.SupplyModel) model;
+            if (sm.isMega()) {
+                tool_tip_box.append("MEGA ");
+            }
+        }
         tool_tip_box.append(
                 Utils.getBundleString(
                         ResourceBundle.getBundle(model.getClass().getName()), "name"));
         tool_tip_box.append(Icons.getIcons().getToolTipIcon(model.getClass()));
+        if (model instanceof com.oddlabs.tt.model.SupplyModel) {
+            com.oddlabs.tt.model.SupplyModel sm = (com.oddlabs.tt.model.SupplyModel) model;
+            tool_tip_box.append(" [" + sm.getNumSupplies() + "]");
+        }
     }
 
     public final void visitBuilding(Building building) {

@@ -62,6 +62,7 @@ public final strictfp class ActionButtonPanel extends GUIObject implements Anima
     //	private boolean armory_button_disabled;
     private final NonFocusIconButton tower_button;
     //	private boolean tower_button_disabled;
+    private final NonFocusIconButton wall_button;
     private final NonFocusIconButton harvest_button;
     private final NonFocusIconButton build_button;
     private final NonFocusIconButton army_button;
@@ -202,10 +203,16 @@ public final strictfp class ActionButtonPanel extends GUIObject implements Anima
         peon_group.addChild(tower_button);
         tower_button.addMouseClickListener(new TowerPlaceListener());
         tower_button.setIconDisabler(new BuildingDisabler(Race.BUILDING_TOWER));
+        wall_button =
+                new NonFocusIconButton(race_icons.getTowerIcon(), formatTip("wall_tip", "F"));
+        peon_group.addChild(wall_button);
+        wall_button.addMouseClickListener(new PlaceListener(Race.BUILDING_WALL));
+        wall_button.setIconDisabler(new BuildingDisabler(Race.BUILDING_WALL));
         gather_repair_button.place();
         quarters_button.place(gather_repair_button, BOTTOM_MID);
         armory_button.place(quarters_button, BOTTOM_MID);
         tower_button.place(armory_button, BOTTOM_MID);
+        wall_button.place(tower_button, BOTTOM_MID);
         peon_group.compileCanvas(GROUP_LEFT_OFFSET, GROUP_BOTTOM_OFFSET, GROUP_RIGHT_OFFSET, 0);
 
         PlayerInterface player_interface = viewer.getPeerHub().getPlayerInterface();
@@ -778,6 +785,7 @@ public final strictfp class ActionButtonPanel extends GUIObject implements Anima
             quarters_button.doUpdate();
             armory_button.doUpdate();
             tower_button.doUpdate();
+            wall_button.doUpdate();
         }
         if (current_unit) {
             move_button.doUpdate();
@@ -1127,6 +1135,12 @@ public final strictfp class ActionButtonPanel extends GUIObject implements Anima
             case Keyboard.KEY_X:
                 if (current_tower) {
                     tower_exit_button.mouseClickedAll(LocalInput.LEFT_BUTTON, 0, 0, 1);
+                    return true;
+                }
+                break;
+            case Keyboard.KEY_F:
+                if (current_peon) {
+                    wall_button.mouseClickedAll(LocalInput.LEFT_BUTTON, 0, 0, 1);
                     return true;
                 }
                 break;

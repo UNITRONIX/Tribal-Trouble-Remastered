@@ -1118,51 +1118,63 @@ public final strictfp class Channel {
     }
 
     public final Channel largestConnected(float value) {
-        Channel tmp = this.copy();
-        Channel fillmap = new Channel(width, height);
-        int[] fillcoords = tmp.findFirst(value);
-        int max_count = 0;
-        while (fillcoords[0] != -1) { // while reachable pixels remain
-            int count = 0;
-            int init_x = fillcoords[0];
-            int init_y = fillcoords[1];
-            fillmap.fill(0f);
-            // flood fill
-            boolean[][] marked = new boolean[width][height];
-            marked[init_x][init_y] = true;
-            List list = new java.util.LinkedList();
-            list.add(new int[] {init_x, init_y});
-            while (list.size() > 0) {
-                int[] coords = (int[]) list.remove(0);
-                int x = coords[0];
-                int y = coords[1];
-                tmp.putPixel(x, y, -1f);
-                fillmap.putPixel(x, y, 1f);
-                count++;
-                if (x > 0 && tmp.getPixel(x - 1, y) == 1f && !marked[x - 1][y]) {
-                    marked[x - 1][y] = true;
-                    list.add(new int[] {x - 1, y});
+        // Union-Find based connected component labeling - O(n*alpha(n)) ~ O(n)
+        int n = width * height;
+        int[] parent = new int[n];
+        int[] sz = new int[n];
+        java.util.Arrays.fill(parent, -1);
+
+        // Single pass: label matching pixels and union with left/top neighbors
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (pixels[y][x] != value) continue;
+                int idx = y * width + x;
+                parent[idx] = idx;
+                sz[idx] = 1;
+                if (x > 0 && parent[idx - 1] >= 0) {
+                    ufUnion(parent, sz, idx, idx - 1);
                 }
-                if (x < width - 1 && tmp.getPixel(x + 1, y) == 1f && !marked[x + 1][y]) {
-                    marked[x + 1][y] = true;
-                    list.add(new int[] {x + 1, y});
-                }
-                if (y > 0 && tmp.getPixel(x, y - 1) == 1f && !marked[x][y - 1]) {
-                    marked[x][y - 1] = true;
-                    list.add(new int[] {x, y - 1});
-                }
-                if (y < height - 1 && tmp.getPixel(x, y + 1) == 1f && !marked[x][y + 1]) {
-                    marked[x][y + 1] = true;
-                    list.add(new int[] {x, y + 1});
+                if (y > 0 && parent[idx - width] >= 0) {
+                    ufUnion(parent, sz, idx, idx - width);
                 }
             }
-            if (count > max_count) {
-                pixels = fillmap.copy().pixels;
-                max_count = count;
+        }
+
+        // Find root of largest component
+        int bestRoot = -1;
+        int bestSize = 0;
+        for (int i = 0; i < n; i++) {
+            if (parent[i] >= 0 && parent[i] == i && sz[i] > bestSize) {
+                bestSize = sz[i];
+                bestRoot = i;
             }
-            fillcoords = tmp.findFirst(value);
+        }
+
+        // Write result: value for largest component, 0f elsewhere
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int idx = y * width + x;
+                pixels[y][x] = (parent[idx] >= 0 && ufFind(parent, idx) == bestRoot) ? value : 0f;
+            }
         }
         return this;
+    }
+
+    private static int ufFind(int[] parent, int i) {
+        while (parent[i] != i) {
+            parent[i] = parent[parent[i]]; // path halving
+            i = parent[i];
+        }
+        return i;
+    }
+
+    private static void ufUnion(int[] parent, int[] sz, int a, int b) {
+        int ra = ufFind(parent, a);
+        int rb = ufFind(parent, b);
+        if (ra == rb) return;
+        if (sz[ra] < sz[rb]) { int t = ra; ra = rb; rb = t; }
+        parent[rb] = ra;
+        sz[ra] += sz[rb];
     }
 
     public final float averageConnected(float value) {

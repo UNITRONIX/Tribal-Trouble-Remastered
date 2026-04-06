@@ -11,6 +11,7 @@ public final strictfp class PlacingDelegateTrigger extends TutorialTrigger {
         player.enableAttacking(false);
         player.enableBuilding(Race.BUILDING_ARMORY, false);
         player.enableBuilding(Race.BUILDING_TOWER, false);
+        player.enableBuilding(Race.BUILDING_WALL, false);
         player.enableChieftains(false);
     }
 

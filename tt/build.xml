@@ -341,7 +341,7 @@
 			<arg value="com.oddlabs.tt.Main" />
 			<arg value="--java-options" />
 			<arg
-				value="-ea -Djdk.crypto.KeyAgreement.legacyKDF=true -Xmx512m -cp $APPDIR\;$APPDIR\*" />
+				value="-ea -Djdk.crypto.KeyAgreement.legacyKDF=true -Xmx2048m -cp $APPDIR\;$APPDIR\*" />
 			<arg value="--type" />
 			<arg value="app-image" />
 			<arg value="--icon" />

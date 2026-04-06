@@ -10,7 +10,7 @@
 	<property name="tools" value="../tools" />
 	<property name="nativelib" value="../common/lib/java" />
 	<property name="commonstatic" value="../common/static" />
-	<property name="java_source_version" value="1.8" />
+	<property name="java_source_version" value="17" />
 	<import file="../classpath.xml" />
 	
 	<!-- Classpaths -->
@@ -169,7 +169,7 @@
 					<jvmarg value="-ea" />
 					<jvmarg value="-Djava.library.path=${nativelib}" />
 					<jvmarg value="-Dorg.lwjgl.util.Debug=true" />
-					<jvmarg value="-Xmx400000000" />
+					<jvmarg value="-Xmx2g" />
 					<jvmarg value="-Djdk.crypto.KeyAgreement.legacyKDF=true" />
 					<jvmarg value="-XstartOnFirstThread" />
 
@@ -185,12 +185,8 @@
 					<jvmarg value="-ea" />
 					<jvmarg value="-Djava.library.path=${nativelib}" />
 					<jvmarg value="-Dorg.lwjgl.util.Debug=true" />
-					<jvmarg value="-Xmx400000000" />
+					<jvmarg value="-Xmx2g" />
 					<jvmarg value="-Djdk.crypto.KeyAgreement.legacyKDF=true" />
-
-					<!--<jvmarg
-					value="-Djavax.net.debug=ssl,handshake,trustmanager"/>-->
-					<!--	<jvmarg value="-Dorg.lwjgl.opengl.Window.undecorated=true"/>-->
 				</java>
 			</else>
 		</if>
